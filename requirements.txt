@@ -1,20 +1,11 @@
-Django==5.0.2
-django-compat==1.0.15
-django-cors-headers==4.7.0
-djangorestframework==3.16.1
-django-filter>=24,<26
-dj-database-url==2.0.0
-pymysql
-django-rest-auth
-python-dateutil==2.9.0.post0
-requests==2.32.3
-cryptography==42.0.8
-google-cloud-storage==2.15.0
-Pillow==10.4.0
+Django==4.2.7  # Cambiar de 5.0.2 a 4.2.7 (más estable)
+djangorestframework==3.14.0
+django-cors-headers==4.2.0
+django-filter==23.5
 gunicorn==21.2.0
 whitenoise==6.6.0
 psycopg2-binary==2.9.9
 python-dotenv==1.0.0
-mysqlclient==2.2.0  # Si sigues usando MySQL
-# O para PostgreSQL:
-# psycopg2-binary==2.9.9
+mysqlclient==2.2.0
+dj-database-url==2.0.0
+# Eliminar dependencias no esenciales para producción

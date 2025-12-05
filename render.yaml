@@ -2,7 +2,7 @@ services:
   - type: web
     name: backend-crud-materias
     env: python
-    region: ohio  # o la región más cercana a ti
+    region: ohio
     plan: free
     buildCommand: |
       pip install --upgrade pip
@@ -16,4 +16,3 @@ services:
         value: "False"
       - key: PYTHON_VERSION
         value: "3.10.12"
-    autoDeploy: true

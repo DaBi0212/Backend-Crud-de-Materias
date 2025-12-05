@@ -19,9 +19,10 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = []
 
+# Corregir ALLOWED_HOSTS
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    ALLOWED_HOSTS.append('backend-crud-materias.onrender.com')  # Tu dominio en Render
+    ALLOWED_HOSTS.append('backend-crud-de-materias.onrender.com')  # CORREGIR: agregar "-de-"
 else:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
@@ -60,6 +61,11 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
     'https://crud-de-materias.vercel.app',
+]
+
+# También puedes usar (más flexible para desarrollo):
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://crud-de-materias-.*\.vercel\.app$",  # Para preview deployments
 ]
 
 # Si estás en desarrollo, permite todos los orígenes (solo para debug)
