@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q778+99oz&!ms2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# En Render, asegúrate de que la variable DEBUG sea 'False' cuando termines de arreglar esto.
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # --- CONFIGURACIÓN DE HOSTS PERMITIDOS ---
@@ -57,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF (CORREGIDA) ---
+# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF ---
 
 # 1. Usamos REGEX para permitir cualquier subdominio de Vercel (Previews y Producción)
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -70,8 +71,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
 ]
 
-# 2. Orígenes de confianza para CSRF (Necesario para POST/PUT/DELETE)
-# El asterisco (*) permite cualquier subdominio de vercel.app
+# 2. Orígenes de confianza para CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://backend-crud-de-materias.onrender.com',
     'https://crud-de-materias.vercel.app',
@@ -112,7 +112,6 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # "None" permite que las cookies viajen entre backend (Render) y frontend (Vercel)
     CSRF_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SAMESITE = 'None'
     SECURE_HSTS_SECONDS = 31536000
@@ -139,27 +138,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_movil_escolar_api.wsgi.application'
 
-# --- CONFIGURACIÓN DE BASE DE DATOS CORREGIDA (SOLUCIÓN MYSQL/SSL) ---
+# --- CONFIGURACIÓN DE BASE DE DATOS ---
 if os.environ.get('DATABASE_URL'):
     database_url = os.environ.get('DATABASE_URL')
     
-    # Parseamos la configuración pero DESACTIVAMOS ssl_require por defecto
-    # Esto evita que se inyecte 'sslmode' que rompe el driver de MySQL
     db_config = dj_database_url.parse(
         database_url,
         conn_max_age=600,
         ssl_require=False
     )
     
-    # Lógica condicional según el motor de base de datos
     if db_config['ENGINE'] == 'django.db.backends.mysql':
-        # Configuración específica para MySQL
         db_config['OPTIONS'] = {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
         }
     elif db_config['ENGINE'] == 'django.db.backends.postgresql':
-        # Configuración específica para PostgreSQL (Solo si usas Postgres)
         db_config['OPTIONS'] = {
             'sslmode': 'require'
         }
@@ -168,7 +162,6 @@ if os.environ.get('DATABASE_URL'):
         'default': db_config
     }
 else:
-    # Configuración de Fallback (Local o sin variable de entorno)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -211,3 +204,18 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
+
+# ==============================================================================
+# CORRECCIÓN DE ERROR 500 (FALTA DE VARIABLES DE EMAIL)
+# ==============================================================================
+# Usamos el 'ConsoleBackend' para que Django imprima los correos en la consola
+# en lugar de intentar enviarlos. Esto evita el crash si no hay credenciales SMTP.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Si en el futuro quieres enviar correos reales, descomenta esto y agrega las variables en Render:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
