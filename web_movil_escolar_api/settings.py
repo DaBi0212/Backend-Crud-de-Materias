@@ -14,7 +14,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # En Render, asegúrate de que la variable DEBUG sea 'False' cuando termines de arreglar esto.
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = True
 
 # --- CONFIGURACIÓN DE HOSTS PERMITIDOS ---
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
