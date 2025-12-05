@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# Configurar ALLOWED_HOSTS
+# --- CONFIGURACIÓN DE HOSTS PERMITIDOS ---
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = ['backend-crud-de-materias.onrender.com']
 
@@ -24,10 +24,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 else:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
-# Agregar el dominio de tu frontend Vercel
+# Agregamos .vercel.app para permitir cualquier subdominio en el Host header
 ALLOWED_HOSTS.extend([
-    'crud-de-materias.vercel.app',
-    '.vercel.app'
+    '.vercel.app',
+    'crud-de-materias.vercel.app'
 ])
 
 INSTALLED_APPS = [
@@ -57,19 +57,26 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF ---
+# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF (CORREGIDA) ---
 
-# Orígenes permitidos para CORS (Peticiones AJAX)
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:4200',
-    'https://crud-de-materias.vercel.app',
-    'https://backend-crud-de-materias.onrender.com',
+# 1. Usamos REGEX para permitir cualquier subdominio de Vercel (Previews y Producción)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
 ]
 
-# Orígenes de confianza para CSRF (Necesario para POST/PUT desde Vercel)
+# Mantenemos localhost explícito para desarrollo local
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
+
+# 2. Orígenes de confianza para CSRF (Necesario para POST/PUT/DELETE)
+# El asterisco (*) permite cualquier subdominio de vercel.app
 CSRF_TRUSTED_ORIGINS = [
-    'https://crud-de-materias.vercel.app',
     'https://backend-crud-de-materias.onrender.com',
+    'https://crud-de-materias.vercel.app',
+    'https://*.vercel.app',
+    'http://localhost:4200'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -105,7 +112,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Estas dos configuraciones ayudan con problemas de cookies en cross-site
+    # "None" permite que las cookies viajen entre backend (Render) y frontend (Vercel)
     CSRF_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SAMESITE = 'None'
     SECURE_HSTS_SECONDS = 31536000
