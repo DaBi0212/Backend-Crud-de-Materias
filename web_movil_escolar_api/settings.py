@@ -15,7 +15,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# Configurar ALLOWED_HOSTS para Render
+# Configurar ALLOWED_HOSTS
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 ALLOWED_HOSTS = ['backend-crud-de-materias.onrender.com']
 
@@ -24,10 +24,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 else:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
-# Agregar el dominio de tu frontend Vercel si está en producción
+# Agregar el dominio de tu frontend Vercel
 ALLOWED_HOSTS.extend([
     'crud-de-materias.vercel.app',
-    '*.vercel.app'
+    '.vercel.app'
 ])
 
 INSTALLED_APPS = [
@@ -37,19 +37,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_filters',                 # necesarios para los filtros de DRF
+    'django_filters',
     'rest_framework',
-    'rest_framework.authtoken',       # conserva soporte de tokens de DRF
-    'corsheaders',                    # librería CORS actualizada
+    'rest_framework.authtoken',
+    'corsheaders',
     'web_movil_escolar_api',
-    'whitenoise.runserver_nostatic',  # Para servir archivos estáticos en Render
+    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise para archivos estáticos
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',     # CORS debe ir antes de CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware', # IMPORTANTE: Cors antes de Common
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -57,24 +57,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Configuración de CORS
+# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF ---
+
+# Orígenes permitidos para CORS (Peticiones AJAX)
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
     'https://crud-de-materias.vercel.app',
     'https://backend-crud-de-materias.onrender.com',
 ]
 
-# También puedes usar (más flexible para desarrollo):
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://crud-de-materias-.*\.vercel\.app$",  # Para preview deployments
-    r"^https://.*-crud-de-materias\.vercel\.app$",
+# Orígenes de confianza para CSRF (Necesario para POST/PUT desde Vercel)
+CSRF_TRUSTED_ORIGINS = [
+    'https://crud-de-materias.vercel.app',
+    'https://backend-crud-de-materias.onrender.com',
 ]
-
-# Si estás en desarrollo, permite todos los orígenes (solo para debug)
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -102,6 +98,20 @@ CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
 ]
 
+# Configuración de seguridad adicional para producción
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Estas dos configuraciones ayudan con problemas de cookies en cross-site
+    CSRF_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SAMESITE = 'None'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
 ROOT_URLCONF = 'web_movil_escolar_api.urls'
 
 TEMPLATES = [
@@ -122,10 +132,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_movil_escolar_api.wsgi.application'
 
-# Database Configuration
-# Usa PostgreSQL en producción (Render) y MySQL/SQLite en desarrollo
+# Base de datos
 if os.environ.get('DATABASE_URL'):
-    # Configuración para Render (PostgreSQL)
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -134,7 +142,6 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Configuración local (desarrollo)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -158,16 +165,13 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# DRF Configuration
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -180,14 +184,3 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
-
-# Configuración de seguridad adicional para producción
-if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 año
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
