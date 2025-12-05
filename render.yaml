@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: backend-crud-materias
+    env: python
+    region: ohio  # o la región más cercana a ti
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn web_movil_escolar_api.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.10.12"
+    autoDeploy: true
