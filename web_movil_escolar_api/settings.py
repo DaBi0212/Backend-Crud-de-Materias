@@ -17,18 +17,18 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 # Configurar ALLOWED_HOSTS para Render
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['backend-crud-de-materias.onrender.com']
 
-# Corregir ALLOWED_HOSTS
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    ALLOWED_HOSTS.append('backend-crud-de-materias.onrender.com')  # CORREGIR: agregar "-de-"
 else:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
 
 # Agregar el dominio de tu frontend Vercel si está en producción
-if not DEBUG:
-    ALLOWED_HOSTS.append('crud-de-materias.vercel.app')
+ALLOWED_HOSTS.extend([
+    'crud-de-materias.vercel.app',
+    '*.vercel.app'
+])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -61,11 +61,13 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
     'https://crud-de-materias.vercel.app',
+    'https://backend-crud-de-materias.onrender.com',
 ]
 
 # También puedes usar (más flexible para desarrollo):
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://crud-de-materias-.*\.vercel\.app$",  # Para preview deployments
+    r"^https://.*-crud-de-materias\.vercel\.app$",
 ]
 
 # Si estás en desarrollo, permite todos los orígenes (solo para debug)
@@ -97,6 +99,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'access-control-allow-origin',
 ]
 
 ROOT_URLCONF = 'web_movil_escolar_api.urls'

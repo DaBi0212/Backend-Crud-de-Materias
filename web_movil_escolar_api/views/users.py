@@ -77,8 +77,7 @@ class AdminAll(APIView):
         return paginator.get_paginated_response(data)
 
 class AdminView(generics.CreateAPIView):
-    # Permisos por método (sobrescribe el comportamiento default)
-    # Verifica que el usuario esté autenticado para las peticiones GET, PUT y DELETE
+    # CORREGIDO: POST no requiere autenticación para registro
     def get_permissions(self):
         if self.request.method in ['GET', 'PUT', 'DELETE']:
             return [permissions.IsAuthenticated()]
@@ -144,7 +143,6 @@ class AdminView(generics.CreateAPIView):
         return Response(user.errors, status=status.HTTP_400_BAD_REQUEST)
     
     # Actualizar datos del administrador
-    # Actualizar datos del administrador - VERSIÓN CORREGIDA
     @transaction.atomic
     def put(self, request, *args, **kwargs):
         # Primero obtenemos el administrador a actualizar

@@ -85,6 +85,7 @@ class MaestrosAll(APIView):
         return paginator.get_paginated_response(data)
 
 class MaestrosView(generics.CreateAPIView):
+    # CORREGIDO: POST no requiere autenticación para registro
     def get_permissions(self):
         if self.request.method in ['GET', 'PUT', 'DELETE']:
             return [permissions.IsAuthenticated()]
