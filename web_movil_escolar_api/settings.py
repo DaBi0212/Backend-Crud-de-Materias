@@ -1,37 +1,13 @@
 import os
-from pathlib import Path
-import dj_database_url
-from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Mantén la clave secreta en variables de entorno en producción
+SECRET_KEY = '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q778+99oz&!ms2'
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', '-_&+lsebec(whhw!%n@ww&1j=4-^j_if9x8$q778+99oz&!ms2')
+DEBUG = True  # en desarrollo
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# En Render, asegúrate de que la variable DEBUG sea 'False' cuando termines de arreglar esto.
-# DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-DEBUG = True
-
-# --- CONFIGURACIÓN DE HOSTS PERMITIDOS ---
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-ALLOWED_HOSTS = ['backend-crud-de-materias.onrender.com']
-
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-else:
-    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1'])
-
-# Agregamos .vercel.app para permitir cualquier subdominio en el Host header
-ALLOWED_HOSTS.extend([
-    '.vercel.app',
-    'crud-de-materias.vercel.app'
-])
-
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,19 +15,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_filters',
+    'django_filters',                 # necesarios para los filtros de DRF
     'rest_framework',
-    'rest_framework.authtoken',
-    'corsheaders',
+    'rest_framework.authtoken',       # conserva soporte de tokens de DRF
+    'corsheaders',                    # librería CORS actualizada
     'web_movil_escolar_api',
-    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # IMPORTANTE: Cors antes de Common
+    'corsheaders.middleware.CorsMiddleware',     # CORS debe ir antes de CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -59,67 +33,25 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# --- CONFIGURACIÓN CRÍTICA DE CORS Y CSRF ---
-
-# 1. Usamos REGEX para permitir cualquier subdominio de Vercel (Previews y Producción)
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.vercel\.app$",
-]
-
-# Mantenemos localhost explícito para desarrollo local
+# Configuración de CORS: define orígenes permitidos y quita CORS_ORIGIN_ALLOW_ALL
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
+    'http://localhost:4200',
 ]
-
-# 2. Orígenes de confianza para CSRF
-CSRF_TRUSTED_ORIGINS = [
-    'https://backend-crud-de-materias.onrender.com',
-    'https://crud-de-materias.vercel.app',
-    'https://*.vercel.app',
-    'http://localhost:4200'
-]
-
 CORS_ALLOW_CREDENTIALS = True
 
-# Métodos HTTP permitidos
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-# Headers permitidos
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'access-control-allow-origin',
-]
-
-# Configuración de seguridad adicional para producción
-if not DEBUG:
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CSRF_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_SAMESITE = 'None'
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-
 ROOT_URLCONF = 'web_movil_escolar_api.urls'
+
+
+
+import os
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STATIC_URL = "/static/"
+# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+# TEMPLATES[0]["DIRS"] = [os.path.join(BASE_DIR, "templates")]
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 TEMPLATES = [
     {
@@ -139,39 +71,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_movil_escolar_api.wsgi.application'
 
-# --- CONFIGURACIÓN DE BASE DE DATOS ---
-if os.environ.get('DATABASE_URL'):
-    database_url = os.environ.get('DATABASE_URL')
-    
-    db_config = dj_database_url.parse(
-        database_url,
-        conn_max_age=600,
-        ssl_require=False
-    )
-    
-    if db_config['ENGINE'] == 'django.db.backends.mysql':
-        db_config['OPTIONS'] = {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'read_default_file': os.path.join(BASE_DIR, "my.cnf"),
             'charset': 'utf8mb4',
         }
-    elif db_config['ENGINE'] == 'django.db.backends.postgresql':
-        db_config['OPTIONS'] = {
-            'sslmode': 'require'
-        }
-
-    DATABASES = {
-        'default': db_config
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'OPTIONS': {
-                'read_default_file': os.path.join(BASE_DIR, "my.cnf"),
-                'charset': 'utf8mb4',
-            }
-        }
-    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -187,11 +95,6 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
@@ -205,18 +108,3 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
 }
-
-# ==============================================================================
-# CORRECCIÓN DE ERROR 500 (FALTA DE VARIABLES DE EMAIL)
-# ==============================================================================
-# Usamos el 'ConsoleBackend' para que Django imprima los correos en la consola
-# en lugar de intentar enviarlos. Esto evita el crash si no hay credenciales SMTP.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Si en el futuro quieres enviar correos reales, descomenta esto y agrega las variables en Render:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
