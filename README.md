@@ -1,86 +1,98 @@
-### README del Backend (Django)
-
-Crea un archivo llamado `README.md` en la raíz de tu carpeta del proyecto Django (donde está el archivo `manage.py`).
-
-```markdown
 # 🐍 Sistema de Gestión Escolar - API REST (Backend)
 
-Backend robusto desarrollado en **Django REST Framework** que sirve como el núcleo lógico para la plataforma de gestión escolar. Maneja la autenticación, la persistencia de datos y las reglas de negocio.
+Este repositorio contiene el **Backend** del Sistema de Gestión Escolar. Es una API RESTful desarrollada con **Django** y **Django REST Framework** que gestiona la lógica de negocio, la seguridad y la persistencia de datos, sirviendo como proveedor de información para la aplicación cliente (Angular).
 
-## ⚙️ Tecnologías
+## ⚙️ Stack Tecnológico
 
-* **Lenguaje:** Python 3.x
-* **Framework:** Django 4.x
+* **Lenguaje:** Python 3.10+
+* **Framework Web:** Django 4.x
 * **API Toolkit:** Django REST Framework (DRF)
-* **Autenticación:** JWT (JSON Web Tokens)
-* **Base de Datos:** SQLite (Dev) / PostgreSQL (Prod)
-* **CORS:** `django-cors-headers` para permitir peticiones desde Angular.
+* **Autenticación:** JWT (JSON Web Tokens) vía `djangorestframework-simplejwt`
+* **Base de Datos:**
+  * *Desarrollo:* SQLite
+  * *Producción:* PostgreSQL (Configurable)
+* **Intercambio de Recursos:** `django-cors-headers` (Habilitado para comunicación con Angular)
 
 ## 🔐 Características del API
 
-### 1. Autenticación y Usuarios
-* **Modelo de Usuario Personalizado:** Extensión de `AbstractUser` para manejar roles (`administrador`, `maestro`, `alumno`).
-* **JWT:** Endpoints para obtención y refresco de tokens.
-* **Validaciones Backend:**
-    * Unicidad de Matricula y Email.
-    * Formato de CURP y RFC.
+### 1. Gestión de Identidad y Acceso
+* **Modelo de Usuario Extendido:** Implementación personalizada de `AbstractUser` para soportar roles específicos (`administrador`, `maestro`, `alumno`) y metadatos adicionales.
+* **Seguridad:** Endpoints protegidos mediante tokens JWT (Access & Refresh).
+* **Validaciones de Integridad:**
+    * Unicidad estricta en campos clave (Matrícula, Email).
+    * Validaciones de formato regex para documentos oficiales (CURP, RFC).
 
 ### 2. Endpoints Principales
 
-| Método | Endpoint | Descripción |
-| :--- | :--- | :--- |
-| `POST` | `/api/login/` | Autenticación de usuarios. |
-| `GET` | `/api/users/` | Listado general de usuarios (filtrable). |
-| `POST` | `/api/admin/` | Registro de nuevos administradores. |
-| `POST` | `/api/materias/` | Creación de materias (valida NRC). |
-| `GET` | `/api/total-usuarios/` | Datos estadísticos para gráficas. |
+La API expone los siguientes recursos principales:
 
-## 🚀 Instalación y Despliegue
+| Método | Endpoint | Descripción | Requiere Auth |
+| :--- | :--- | :--- | :---: |
+| `POST` | `/api/token/` | Login: Obtención de par de tokens (Access/Refresh). | ❌ |
+| `POST` | `/api/token/refresh/` | Renovación del token de acceso. | ❌ |
+| `GET` | `/api/users/` | Listado general de usuarios (con filtros por rol). | ✅ |
+| `POST` | `/api/admin/` | Registro de nuevos administradores. | ✅ |
+| `POST` | `/api/materias/` | Creación de materias (Valida NRC único y horarios). | ✅ |
+| `GET` | `/api/total-usuarios/` | Data estadística para el Dashboard. | ✅ |
+
+## 🚀 Instalación y Despliegue Local
+
+Sigue estos pasos para levantar el servidor de desarrollo en tu máquina local.
 
 ### Prerrequisitos
-* Python 3.8+
-* Pip / Virtualenv
+* Python 3.8 o superior instalado.
+* `pip` actualizado.
 
 ### Pasos
-1.  **Crear entorno virtual:**
+
+1.  **Clonar el repositorio:**
     ```bash
-    python -m venv venv
+    git clone <URL_DE_TU_REPO_BACKEND>
+    cd <NOMBRE_DE_LA_CARPETA>
+    ```
+
+2.  **Crear entorno virtual:**
+    Es recomendable aislar las dependencias del proyecto.
+    ```bash
     # Windows
+    python -m venv venv
     .\venv\Scripts\activate
+
     # Mac/Linux
+    python3 -m venv venv
     source venv/bin/activate
     ```
 
-2.  **Instalar dependencias:**
+3.  **Instalar dependencias:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Configurar Base de Datos:**
-    Realiza las migraciones para crear las tablas:
+4.  **Migraciones de Base de Datos:**
+    Genera la base de datos SQLite inicial y aplica las estructuras de tablas.
     ```bash
     python manage.py makemigrations
     python manage.py migrate
     ```
 
-4.  **Crear Superusuario (Opcional):**
+5.  **Crear Superusuario (Administrador):**
+    Para acceder al panel de administración de Django (`/admin`).
     ```bash
     python manage.py createsuperuser
     ```
 
-5.  **Ejecutar el servidor:**
+6.  **Ejecutar el servidor:**
     ```bash
     python manage.py runserver
     ```
     El API estará disponible en `http://127.0.0.1:8000/`.
 
-## 🛡️ Reglas de Negocio Implementadas
+## ⚙️ Configuración Adicional (CORS)
 
-* **Integridad de Horarios:** El backend recibe y almacena los horarios validados previamente por el frontend, pero mantiene restricciones de integridad en BD.
-* **NRC Único:** Restricción a nivel de modelo para evitar duplicidad de materias.
-* **Relaciones:**
-    * Un Maestro puede tener múltiples materias.
-    * Una Materia pertenece a un Programa Educativo específico.
+Para que el Frontend (Angular) pueda comunicarse con este Backend, asegúrate de que el origen del frontend esté permitido en `settings.py`.
 
----
-Desarrollado por **David** - 2025
+```python
+# settings.py
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200", # Puerto por defecto de Angular
+]
